@@ -1,0 +1,10 @@
+main
+vpipka
+*.exe
+*.ilk
+*.pdb
+*.so
+*.dylib
+*.dll
+
+.vscode
