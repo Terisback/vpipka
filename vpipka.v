@@ -1,49 +1,39 @@
 module main
 
-import net.html
-import net.http
 import json
 import os
+import vweb
 
-const(
-	address = "https://quiz-geek.ru/randomquestions"
+const (
+	port = 3000
 )
 
-struct Item {
-	question string
-	answer string
+struct App {
+pub mut:
+	vweb vweb.Context
 }
 
 fn main() {
-	resp := http.get(address) or {
-		println(err)
-		return
+	mut p := port
+	env_port := os.getenv('PORT')
+	if env_port != '' {
+		p = env_port.int()
 	}
+	vweb.run<App>(port)
+}
 
-	if resp.status_code != 200 {
-		println('Status code is ${resp.status_code}')
-		println('Unavailable to continue...')
-		return
+pub fn (mut app App) init_once() {
+}
+
+pub fn (mut app App) init() {
+}
+
+pub fn (mut app App) index() vweb.Result {
+	if quiz := get_quiz() {
+		text := json.encode(quiz)
+		return app.vweb.json(text)
+	} else {
+		app.vweb.set_status(0, '') // 500 Internal Error
+		return app.vweb.text("Can\'t get quiz from site, cause $err")
 	}
-
-	mut quiz := []Item{}
-	
-	mut parser := html.Parser{}
-	parser.parse_html(resp.text, false)
-	mut tbody := parser.get_dom().get_by_tag("table")[0]
-	for tr in tbody.get_children(){
-		mut td := tr.get_children()[0]
-		question := td.get_children()[0].get_content()
-		ans_holder := td.get_children()[1].get_children()[1].get_content()
-		answer := ans_holder.split("content :")[1].split("\"")[1]
-
-		quiz << Item{question: question.trim_space(), answer: answer.trim_space()}
-	}
-
-	os.write_file("quiz.json", json.encode(quiz)) or {
-		println('Can\'t json\'ify quiz cause ${err}')
-		return
-	}
-
-	println("Success!")
-}	
+}
