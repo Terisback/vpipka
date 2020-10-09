@@ -14,23 +14,24 @@ mut:
 }
 
 struct Item {
-mut:
 	question string
 	answer   string
 }
 
+// It isn't used anywhere, I've implemented this just for fun
 pub fn (mut q Quiz) from_json(f js.Any){
 	arr := f.arr()
 	for item in arr{
-		mut quiz_item := Item{}
+		mut question := ''
+		mut answer := ''
 		for k, v in item.as_map(){
 			match k {
-				'question' {quiz_item.question = v.str()}
-				'answer' {quiz_item.answer = v.str()}
+				'question' {question = v.str()}
+				'answer' {answer = v.str()}
 				else {}
 			}
 		}
-		q.quiz << quiz_item
+		q.quiz << Item{question, answer}
 	}
 }
 
@@ -38,17 +39,9 @@ pub fn (q Quiz) to_json() string{
 	mut arr := []js.Any{}
 	for item in q.quiz {
 		mut quiz_item := map[string]js.Any
-		quiz_item['question'] = item.question
-		quiz_item['answer'] = item.answer
+		quiz_item['question'] = item.question.replace('\n', '')
+		quiz_item['answer'] = item.answer.replace('\n', '')
 		arr.insert_map(quiz_item)
-		unsafe {
-			quiz_item.free()
-		}
-	}
-	unsafe {
-		defer {
-			arr.free()
-		}
 	}
 	return arr.str()
 }

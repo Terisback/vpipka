@@ -33,10 +33,9 @@ pub fn (mut app App) index() vweb.Result {
 		app.vweb.set_status(0, '') // 500 Internal Error
 		return app.vweb.text("Can\'t get quiz from site, cause $err")
 	}
-	println("Whatt")
 	text := js.encode<Quiz>(quiz)
-	defer {
-		text.free()
-	}
+	// Doesn't work as intended
+	//obj := js.decode<Quiz>(text)
+	//println(obj)
 	return app.vweb.json(text)
 }
