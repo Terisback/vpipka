@@ -11,6 +11,7 @@ const (
 struct App {
 pub mut:
 	vweb vweb.Context
+	quiz string
 }
 
 fn main() {
@@ -23,19 +24,25 @@ fn main() {
 }
 
 pub fn (mut app App) init_once() {
+	quiz := get_quiz() or {
+		println("Can\'t get quiz from site, cause $err")
+		return
+	}
+	app.quiz = js.encode<Quiz>(quiz)
 }
 
 pub fn (mut app App) init() {
 }
 
 pub fn (mut app App) index() vweb.Result {
+	return app.vweb.json(app.quiz)
+}
+
+pub fn (mut app App) reset() vweb.Result {
 	quiz := get_quiz() or {
 		app.vweb.set_status(0, '') // 500 Internal Error
 		return app.vweb.text("Can\'t get quiz from site, cause $err")
 	}
-	text := js.encode<Quiz>(quiz)
-	// Doesn't work as intended
-	//obj := js.decode<Quiz>(text)
-	//println(obj)
-	return app.vweb.json(text)
+	app.quiz = js.encode<Quiz>(quiz)
+	return app.vweb.ok("Success")
 }
